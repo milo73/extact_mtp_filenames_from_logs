@@ -4,7 +4,7 @@ extract_mtp_filenames.py
 Parse a PlanetPress Workflow log file and produce a list of
 MailToPost process entries showing:
   - original mail subject name  (from step [0002] %{Bestandsnaam})
-  - new PDF name                (from step [0020] %{Bestandsnaam})
+  - final PDF name              (from step [0058] File sent, includes C4-/C5- prefix)
   - outcome: sent to printer, or moved to Uitval
 
 Usage:
@@ -36,9 +36,9 @@ RE_STEP2_NAME = re.compile(
     r"\[0002\].*?%\{Bestandsnaam\}\s+is set to\s+\"(.+?)\""
 )
 
-# Step [0020]: new PDF base name
-RE_STEP20_NAME = re.compile(
-    r"\[0020\].*?%\{Bestandsnaam\}\s+is set to\s+\"(.+?)\""
+# Step [0058]: final PDF filename (basename only, includes C4-/C5- prefix)
+RE_STEP58_FILE = re.compile(
+    r"\[0058\] File sent\s*:\s*.+[/\\]([^/\\]+\.pdf),\s*size:"
 )
 
 # Step [0021] Uitval indicator: "1: Document naar Uitval"
@@ -61,13 +61,13 @@ class MtpEntry:
     thread_id: str
     start_time: str
     original_name: Optional[str] = None
-    new_pdf_name: Optional[str] = None
+    final_pdf_name: Optional[str] = None
     uitval: bool = False
 
     def outcome(self) -> str:
         if self.uitval:
             return "Uitval"
-        if self.new_pdf_name:
+        if self.final_pdf_name:
             return "Sent to printer"
         return "Unknown"
 
@@ -101,11 +101,11 @@ def parse_log(path: str) -> list[MtpEntry]:
                     current.original_name = m.group(1)
                     continue
 
-            # Step [0020]: new PDF name
-            if not current.new_pdf_name:
-                m = RE_STEP20_NAME.search(line)
+            # Step [0058]: final PDF filename
+            if not current.final_pdf_name:
+                m = RE_STEP58_FILE.search(line)
                 if m:
-                    current.new_pdf_name = m.group(1)
+                    current.final_pdf_name = m.group(1)
                     continue
 
             # Step [0021]: Uitval
@@ -124,7 +124,7 @@ def parse_log(path: str) -> list[MtpEntry]:
 # Output
 # ---------------------------------------------------------------------------
 
-HEADER = ["Original mail subject", "New PDF name", "Outcome", "Start time", "Thread ID"]
+HEADER = ["Original mail subject", "Final PDF name", "Outcome", "Start time", "Thread ID"]
 
 
 def print_table(entries: list[MtpEntry]) -> None:
@@ -133,7 +133,7 @@ def print_table(entries: list[MtpEntry]) -> None:
     for e in entries:
         row = [
             e.original_name or "(none)",
-            e.new_pdf_name or "(none)",
+            e.final_pdf_name or "(none)",
             e.outcome(),
             e.start_time,
             e.thread_id,
@@ -158,7 +158,7 @@ def write_csv(entries: list[MtpEntry], path: str) -> None:
         for e in entries:
             writer.writerow([
                 e.original_name or "",
-                e.new_pdf_name or "",
+                e.final_pdf_name or "",
                 e.outcome(),
                 e.start_time,
                 e.thread_id,
