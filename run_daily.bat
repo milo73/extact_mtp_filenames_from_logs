@@ -17,46 +17,32 @@
 :: Then restart the Task Scheduler service so it picks up the new variable.
 ::
 set PYTHON="C:\Program Files\Python313\python.exe"
-set SCRIPT="F:\Planetpress\MailToPost\Scripts\run_daily.py"
-set CONFIG="F:\Planetpress\MailToPost\Scripts\config.ini"
-set LOGDIR="F:\Planetpress\MailToPost\Logs"
+set SCRIPTDIR=F:\Planetpress\MailToPost\Scripts
+set LOGDIR=F:\Planetpress\MailToPost\Logs
 
 :: Create log dir if it doesn't exist
-if not exist %LOGDIR% mkdir %LOGDIR%
+if not exist "%LOGDIR%" mkdir "%LOGDIR%"
 
-echo [%date% %time%] Starting MailToPost daily run >> %LOGDIR%\run_daily.log
+echo [%date% %time%] Starting MailToPost daily run >> "%LOGDIR%\run_daily.log"
 
 :: ---------------------------------------------------------------------------
 :: Ensure the Azure file share is reachable and mapped
 :: ---------------------------------------------------------------------------
-powershell.exe -NonInteractive -NoProfile -Command ^
-  "$result = Test-NetConnection -ComputerName stddifilepweu02.file.core.windows.net -Port 445; ^
-   if ($result.TcpTestSucceeded) { ^
-     cmd.exe /C ('cmdkey /add:\"stddifilepweu02.file.core.windows.net\" /user:\"localhost\stddifilepweu02\" /pass:\"' + $env:AZURE_STORAGE_KEY + '\"'); ^
-     if (-not (Test-Path 'Z:\')) { ^
-       New-PSDrive -Name Z -PSProvider FileSystem -Root '\\stddifilepweu02.file.core.windows.net\ddi-data-p-01' -Persist | Out-Null; ^
-       Write-Host 'Drive Z: mapped.' ^
-     } else { ^
-       Write-Host 'Drive Z: already mapped.' ^
-     } ^
-   } else { ^
-     Write-Error 'Cannot reach stddifilepweu02.file.core.windows.net on port 445. Check firewall or VPN.'; ^
-     exit 1 ^
-   }" >> %LOGDIR%\run_daily.log 2>&1
+powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "%SCRIPTDIR%\mount_share.ps1" >> "%LOGDIR%\run_daily.log" 2>&1
 
 if %ERRORLEVEL% neq 0 (
-    echo [%date% %time%] Network mapping failed – aborting. >> %LOGDIR%\run_daily.log
+    echo [%date% %time%] Network mapping failed - aborting. >> "%LOGDIR%\run_daily.log"
     exit /b %ERRORLEVEL%
 )
 
 :: ---------------------------------------------------------------------------
 :: Run the daily parser and e-mailer
 :: ---------------------------------------------------------------------------
-%PYTHON% %SCRIPT% --config %CONFIG% >> %LOGDIR%\run_daily.log 2>&1
+%PYTHON% "%SCRIPTDIR%\run_daily.py" --config "%SCRIPTDIR%\config.ini" >> "%LOGDIR%\run_daily.log" 2>&1
 
 if %ERRORLEVEL% neq 0 (
-    echo [%date% %time%] run_daily.py failed with exit code %ERRORLEVEL% >> %LOGDIR%\run_daily.log
+    echo [%date% %time%] run_daily.py failed with exit code %ERRORLEVEL% >> "%LOGDIR%\run_daily.log"
     exit /b %ERRORLEVEL%
 )
 
-echo [%date% %time%] Done. >> %LOGDIR%\run_daily.log
+echo [%date% %time%] Done. >> "%LOGDIR%\run_daily.log"
