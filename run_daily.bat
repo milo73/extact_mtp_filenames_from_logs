@@ -17,7 +17,7 @@
 :: Then restart the Task Scheduler service so it picks up the new variable.
 ::
 set PYTHON="C:\Program Files\Python313\python.exe"
-set SCRIPTDIR=F:\Planetpress\MailToPost\Scripts
+set SCRIPTDIR=%~dp0
 set LOGDIR=F:\Planetpress\MailToPost\Logs
 
 :: Create log dir if it doesn't exist
