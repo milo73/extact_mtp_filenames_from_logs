@@ -4,7 +4,7 @@ extract_mtp_filenames.py
 Parse a PlanetPress Workflow log file and produce a list of
 MailToPost process entries showing:
   - original mail subject name  (from step [0002] %{Bestandsnaam})
-  - final PDF name              (from step [0058] File sent, includes C4-/C5- prefix)
+  - final PDF name              (from "File sent" line containing MailToPost\ToPrinter\C)
   - outcome: sent to printer, or moved to Uitval
 
 Usage:
@@ -36,9 +36,9 @@ RE_STEP2_NAME = re.compile(
     r"\[0002\].*?%\{Bestandsnaam\}\s+is set to\s+\"(.+?)\""
 )
 
-# Step [0058]: final PDF filename (basename only, includes C4-/C5- prefix)
-RE_STEP58_FILE = re.compile(
-    r"\[0058\] File sent\s*:\s*.+[/\\]([^/\\]+\.pdf),\s*size:"
+# Final PDF filename: "File sent" line whose path contains MailToPost\ToPrinter\C
+RE_PRINTER_FILE = re.compile(
+    r"File sent\s*:.*MailToPost[/\\]ToPrinter[/\\](C[^/\\,]+\.pdf),\s*size:"
 )
 
 # Step [0021] Uitval indicator: "1: Document naar Uitval"
@@ -101,9 +101,9 @@ def parse_log(path: str) -> list[MtpEntry]:
                     current.original_name = m.group(1)
                     continue
 
-            # Step [0058]: final PDF filename
+            # ToPrinter line: final PDF filename sent to printer
             if not current.final_pdf_name:
-                m = RE_STEP58_FILE.search(line)
+                m = RE_PRINTER_FILE.search(line)
                 if m:
                     current.final_pdf_name = m.group(1)
                     continue
