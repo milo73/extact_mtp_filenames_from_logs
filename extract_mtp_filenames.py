@@ -41,9 +41,9 @@ RE_PRINTER_FILE = re.compile(
     r"File sent\s*:.*MailToPost[/\\]ToPrinter[/\\](C[^/\\,]+\.pdf),\s*size:"
 )
 
-# Step [0021] Uitval indicator: "1: Document naar Uitval"
+# Uitval indicator: any line that stores/sets the %{Uitval} variable
 RE_UITVAL = re.compile(
-    r"\[0021\].*\b1:\s*Document naar Uitval\b"
+    r"%\{Uitval\}"
 )
 
 # End of a WPROC block
