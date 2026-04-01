@@ -34,7 +34,7 @@ function Parse-MtpLog {
     $reWprocStart   = [regex]'^WPROC:\s+MailToPost\s+\(thread id:\s*(\d+)\)\s+-\s+(.+)$'
     $reStep2Name    = [regex]'\[0002\].*?%\{Bestandsnaam\}\s+is set to\s+"(.+?)"'
     $rePrinterFile  = [regex]'File sent\s*:.*ToPrinter[/\\].*?(C[45]-[^/\\,]+\.pdf),\s*size:'
-    $reUitval       = [regex]'%\{Uitval\}'
+    $reUitval       = [regex]'File sent\s*:.*MailToPost[/\\]Uitval[/\\]'
     $reWprocEnd     = [regex]'^WPROC:\s+MailToPost\s+\(thread id:\s*(\d+)\)\s+complete'
 
     $entries = [System.Collections.Generic.List[hashtable]]::new()

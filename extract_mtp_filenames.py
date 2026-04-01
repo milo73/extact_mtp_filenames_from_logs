@@ -42,9 +42,9 @@ RE_PRINTER_FILE = re.compile(
     r"File sent\s*:.*ToPrinter[/\\].*?(C[45]-[^/\\,]+\.pdf),\s*size:"
 )
 
-# Uitval indicator: any line that stores/sets the %{Uitval} variable
+# Uitval indicator: "File sent" line whose path contains MailToPost\Uitval\
 RE_UITVAL = re.compile(
-    r"%\{Uitval\}"
+    r"File sent\s*:.*MailToPost[/\\]Uitval[/\\]"
 )
 
 # End of a WPROC block
@@ -109,7 +109,7 @@ def parse_log(path: str) -> list[MtpEntry]:
                     current.final_pdf_name = m.group(1)
                     continue
 
-            # Step [0021]: Uitval
+            # Uitval: file sent to MailToPost\Uitval\ folder
             if RE_UITVAL.search(line):
                 current.uitval = True
                 continue
