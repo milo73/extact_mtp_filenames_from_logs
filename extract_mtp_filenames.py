@@ -36,9 +36,10 @@ RE_STEP2_NAME = re.compile(
     r"\[0002\].*?%\{Bestandsnaam\}\s+is set to\s+\"(.+?)\""
 )
 
-# Final PDF filename: "File sent" line whose path contains MailToPost\ToPrinter\C
+# Final PDF filename: "File sent" line whose path contains ToPrinter,
+# filename starts with C4- or C5- (subdirectories like Aangetekend\ are allowed)
 RE_PRINTER_FILE = re.compile(
-    r"File sent\s*:.*MailToPost[/\\]ToPrinter[/\\](C[^/\\,]+\.pdf),\s*size:"
+    r"File sent\s*:.*ToPrinter[/\\].*?(C[45]-[^/\\,]+\.pdf),\s*size:"
 )
 
 # Uitval indicator: any line that stores/sets the %{Uitval} variable
