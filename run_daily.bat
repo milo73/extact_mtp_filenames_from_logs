@@ -16,8 +16,6 @@
 ::   [System.Environment]::SetEnvironmentVariable('AZURE_STORAGE_KEY','<your-key>','Machine')
 :: Then restart the Task Scheduler service so it picks up the new variable.
 ::
-set PYTHON="C:\Program Files\Python313\python.exe"
-set SCRIPTDIR=%~dp0
 set LOGDIR=F:\Planetpress\MailToPost\Logs
 
 :: Create log dir if it doesn't exist
@@ -28,7 +26,7 @@ echo [%date% %time%] Starting MailToPost daily run >> "%LOGDIR%\run_daily.log"
 :: ---------------------------------------------------------------------------
 :: Ensure the Azure file share is reachable and mapped
 :: ---------------------------------------------------------------------------
-powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "%SCRIPTDIR%\mount_share.ps1" >> "%LOGDIR%\run_daily.log" 2>&1
+powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "%~dp0mount_share.ps1" >> "%LOGDIR%\run_daily.log" 2>&1
 
 if %ERRORLEVEL% neq 0 (
     echo [%date% %time%] Network mapping failed - aborting. >> "%LOGDIR%\run_daily.log"
@@ -38,10 +36,10 @@ if %ERRORLEVEL% neq 0 (
 :: ---------------------------------------------------------------------------
 :: Run the daily parser and e-mailer
 :: ---------------------------------------------------------------------------
-%PYTHON% "%SCRIPTDIR%\run_daily.py" --config "%SCRIPTDIR%\config.ini" >> "%LOGDIR%\run_daily.log" 2>&1
+powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "%~dp0run_daily.ps1" >> "%LOGDIR%\run_daily.log" 2>&1
 
 if %ERRORLEVEL% neq 0 (
-    echo [%date% %time%] run_daily.py failed with exit code %ERRORLEVEL% >> "%LOGDIR%\run_daily.log"
+    echo [%date% %time%] run_daily.ps1 failed with exit code %ERRORLEVEL% >> "%LOGDIR%\run_daily.log"
     exit /b %ERRORLEVEL%
 )
 
